@@ -1,0 +1,231 @@
+.page {
+  --gray-rgb: 0, 0, 0;
+  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
+  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
+
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
+
+  display: grid;
+  grid-template-rows: 60px 1fr 40px;
+  width: 100%;
+  min-height: 100vh;
+  font-family: var(--font-geist-sans);
+  background: var(--background);
+  color: var(--foreground);
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    --gray-rgb: 255, 255, 255;
+    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
+    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
+
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
+  }
+}
+
+.header {
+  grid-row: 1;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.logoWrapper {
+  position: flex;
+  align-items: center;
+  margin-top: 30px;
+  left: 20px;
+}
+
+.logoWrapper svg {
+  width: 43px;
+  height: auto;
+}
+
+/* Nav container for top-right links/buttons */
+.nav {
+  display: flex;
+  gap: 16px;
+}
+
+.githubLink,
+.loginLink,
+.signupLink {
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  border: 1px solid transparent;
+}
+
+.loginLink {
+  background: transparent;
+  color: var(--foreground);
+  border: 3px solid var(--foreground);
+}
+
+.loginLink:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.githubLink {
+  background: transparent;
+  color: var(--foreground);
+  border: 3px solid var(--foreground);
+}
+
+.githubLink:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.signupLink {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  background: #3b82f6;
+  color: #fff;
+  border: 1px solid #3b82f6;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.signupLink:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+/* Basic link/button styling in nav */
+.navLink {
+  text-decoration: none;
+  color: var(--foreground);
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  font-weight: 500;
+}
+
+.navLink:hover {
+  background: var(--gray-alpha-100);
+}
+
+.main {
+  grid-row: 2; /* center row */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  text-align: center;
+}
+
+/* Example styling for the large "Chatbot UI" title */
+.title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-top: -200px;
+}
+
+/* The "Start Chatting" button */
+.startButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #3b82f6;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  height: 50px;
+  margin-top: -10px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.startButton:hover {
+  background: #2563eb;
+}
+
+/* FOOTER (Row 3) - optional if you want a bottom row */
+.footer {
+  grid-row: 3;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Additional styling for links in the footer */
+.footer a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--foreground);
+}
+
+.footer img {
+  flex-shrink: 0;
+}
+
+/* 
+  Hover effects only on devices that support hover.
+  This prevents weird styles on mobile. 
+*/
+@media (hover: hover) and (pointer: fine) {
+  .navLink:hover {
+    background: var(--gray-alpha-100);
+  }
+
+  .startButton:hover {
+    background: #2563eb;
+  }
+
+  .footer a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+/* 
+  Responsive adjustments for smaller screens 
+  (like you had in your original code).
+*/
+@media (max-width: 600px) {
+  .page {
+    padding: 16px;
+    grid-template-rows: 50px 1fr 40px; 
+  }
+
+  .main {
+    gap: 16px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .startButton {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo {
+    filter: invert();
+  }
+}
