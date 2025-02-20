@@ -1,6 +1,8 @@
 import { supabase } from "../lib/supabase/browser-client"
 import { TablesInsert, TablesUpdate } from "../supabase/types"
 
+const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
 export const getHomeWorkspaceByUserId = async (userId: string) => {
   const { data: homeWorkspace, error } = await supabase
     .from("workspaces")
@@ -17,6 +19,10 @@ export const getHomeWorkspaceByUserId = async (userId: string) => {
 }
 
 export const getWorkspaceById = async (workspaceId: string) => {
+  if (!UUID_REGEX.test(workspaceId)) {
+    throw new Error(`Invalid workspace ID: "${workspaceId}" is not a valid UUID`);
+  }
+  
   const { data: workspace, error } = await supabase
     .from("workspaces")
     .select("*")

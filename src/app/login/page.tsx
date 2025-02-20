@@ -10,12 +10,18 @@ import { Metadata } from "next"
 import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
 
+type Workspace = {
+  id: string;
+  user_id: string;
+  is_home: boolean;
+}
+
 export const metadata: Metadata = {
   title: "Login"
 }
 
 export default async function Login({
-  searchParams
+searchParams
 }: {
   searchParams: { message: string }
 }) {
@@ -34,18 +40,28 @@ export default async function Login({
   const session = (await supabase.auth.getSession()).data.session
 
   if (session) {
-    const { data: homeWorkspace, error } = await supabase
+    const { data: workspaces, error } = await supabase
       .from("workspaces")
       .select("*")
       .eq("user_id", session.user.id)
       .eq("is_home", true)
-      .single()
-
-    if (!homeWorkspace) {
-      throw new Error(error.message)
+    
+    if (error) {
+      throw new Error(error.message);
     }
 
-    return redirect(`/${homeWorkspace.id}/chat`)
+    if (!workspaces || workspaces.length === 0) {
+      // No home workspace exists; redirect to setup
+      return redirect("/setup");
+    } else if (workspaces.length > 1) {
+      console.warn(`Multiple home workspaces found for user ${session.user.id}. Using the first one.`);
+      const homeWorkspace = workspaces[0];
+      return redirect(`/${homeWorkspace.id}/chat`);
+    } else {
+      // Exactly one home workspace
+      const homeWorkspace = workspaces[0];
+      return redirect(`/${homeWorkspace.id}/chat`);
+    }
   }
 
   const signIn = async (formData: FormData) => {
@@ -53,8 +69,7 @@ export default async function Login({
 
     const email = formData.get("email") as string
     const password = formData.get("password") as string
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = await createClient();
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -65,20 +80,29 @@ export default async function Login({
       return redirect(`/login?message=${error.message}`)
     }
 
-    const { data: homeWorkspace, error: homeWorkspaceError } = await supabase
+    const { data: workspaces, error: workspacesError } = await supabase
       .from("workspaces")
       .select("*")
       .eq("user_id", data.user.id)
-      .eq("is_home", true)
-      .single()
+      .eq("is_home", true) as { data: Workspace[] | null, error: any }
 
-    if (!homeWorkspace) {
-      throw new Error(
-        homeWorkspaceError?.message || "An unexpected error occurred"
-      )
+    if (workspacesError) {
+      throw new Error(`Workspace query failed: ${workspacesError.message}`)
     }
-
-    return redirect(`/${homeWorkspace.id}/chat`)
+    // Handle different cases
+    if (!workspaces || workspaces.length === 0) {
+      // No home workspace found
+      return redirect("/setup");
+    } else if (workspaces.length > 1) {
+      // Multiple home workspaces found; use the first one
+      console.warn(`Multiple home workspaces found for user ${data.user.id}. Using the first one.`);
+      const homeWorkspace = workspaces[0]; // Get the first workspace object
+      return redirect(`/${homeWorkspace.id}/chat`);
+    } else {
+      // Exactly one home workspace found
+      const homeWorkspace = workspaces[0]; // Get the single workspace object
+      return redirect(`/${homeWorkspace.id}/chat`);
+    }
   }
 
   const getEnvVarOrEdgeConfigValue = async (name: string) => {
@@ -120,7 +144,7 @@ export default async function Login({
     }
 
     const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = await createClient();
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -148,7 +172,7 @@ export default async function Login({
     const origin = (await headers()).get("origin")
     const email = formData.get("email") as string
     const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = await createClient();
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${origin}/auth/callback?next=/login/password`

@@ -16,7 +16,7 @@ import { supabase } from "../../lib/supabase/browser-client"
 import { Tables } from "../../supabase/types"
 import {
   ChatFile,
-  ChatMessage,
+  ChatMessage,  
   ChatSettings,
   LLM,
   MessageImage,
@@ -161,8 +161,8 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
       const profile = await getProfileByUserId(user.id)
       setProfile(profile)
 
-      if (!profile.has_onboarded) {
-        return router.push("/setup")
+      if (!profile) {
+        return;
       }
 
       const workspaces = await getWorkspacesByUserId(user.id)

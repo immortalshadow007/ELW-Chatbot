@@ -1,19 +1,27 @@
 import { supabase } from "../lib/supabase/browser-client"
-import { TablesInsert, TablesUpdate } from "../supabase/types"
+import { Tables, TablesInsert, TablesUpdate } from "../supabase/types"
 
 export const getProfileByUserId = async (userId: string) => {
-  const { data: profile, error } = await supabase
+  const { data: profiles, error } = await supabase
     .from("profiles")
     .select("*")
-    .eq("user_id", userId)
-    .single()
+    .eq("user_id", userId) as { data: Tables<"profiles">[] | null, error: any };
 
-  if (!profile) {
-    throw new Error(error?.message ? error.message : "Profile not found")
-  }
-
-  return profile
-}
+    if (error) {
+      throw new Error(error.message);
+    }
+  
+    if (!profiles || profiles.length === 0) {
+      return null;
+    } else if (profiles.length > 1) {
+      // Multiple profiles found; log a warning and use the first one
+      console.warn(`Multiple profiles found for user ${userId}. Using the first one.`);
+      return profiles[0];
+    } else {
+      // Exactly one profile found
+      return profiles[0];
+    }
+  };
 
 export const getProfilesByUserId = async (userId: string) => {
   const { data: profiles, error } = await supabase
