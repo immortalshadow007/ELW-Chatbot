@@ -1,7 +1,7 @@
 "use client"
 
 import { ChatbotUIContext } from "../../context/context"
-import { getProfileByUserId, updateProfile } from "../../db/profile"
+import { getProfileByUserId, createProfile, updateProfile } from "../../db/profile"
 import {
   getHomeWorkspaceByUserId,
   getWorkspacesByUserId
@@ -11,7 +11,7 @@ import {
   fetchOpenRouterModels
 } from "../../lib/models/fetch-models"
 import { supabase } from "../../lib/supabase/browser-client"
-import { TablesUpdate } from "../../supabase/types"
+import { TablesInsert, TablesUpdate } from "../../supabase/types"
 import { useRouter } from "next/navigation"
 import { useContext, useEffect, useState } from "react"
 import { APIStep } from "../../components/setup/api-step"
@@ -98,29 +98,73 @@ export default function SetupPage() {
     })();
   }, [router, setProfile, setUsername, setEnvKeyMap, setAvailableHostedModels, setAvailableOpenRouterModels]);
 
-  const handleShouldProceed = (proceed: boolean) => {
+  const handleShouldProceed = async (proceed: boolean) => {
     if (proceed) {
+      if (currentStep === 1) {
+        const session = (await supabase.auth.getSession()).data.session;
+        if (!session) {
+          return router.push("/login");
+        }
+  
+        const user = session.user;
+        let profile = await getProfileByUserId(user.id);
+  
+        if (!profile) {
+          try {
+            const newProfile: TablesInsert<"profiles"> = {
+              user_id: user.id,
+              username,
+              display_name: displayName || username,
+              has_onboarded: false,
+              use_azure_openai: false,
+              bio: "",
+              image_path: "",
+              image_url: "",
+              profile_context: "",
+            };
+            profile = await createProfile(newProfile);
+            setProfile(profile);
+          } catch (error) {
+            console.error("Failed to create profile:", error);
+            alert("Error creating profile. Please try again.");
+            return; // Prevent proceeding if profile creation fails
+          }
+        }
+      }
+  
       if (currentStep === SETUP_STEP_COUNT) {
-        handleSaveSetupSetting()
+        await handleSaveSetupSetting();
       } else {
-        setCurrentStep(currentStep + 1)
+        setCurrentStep(currentStep + 1);
       }
     } else {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
+  };
 
   const handleSaveSetupSetting = async () => {
-    const session = (await supabase.auth.getSession()).data.session
+    const session = (await supabase.auth.getSession()).data.session;
     if (!session) {
       return router.push("/login")
     }
 
     const user = session.user
-    const profile = await getProfileByUserId(user.id)
+    let profile = await getProfileByUserId(user.id);
 
     if (!profile) {
-      throw new Error("Profile should have been created during setup");
+      const newProfile: TablesInsert<"profiles"> = {
+        user_id: user.id,
+        username,
+        display_name: displayName || username,
+        has_onboarded: true,
+        use_azure_openai: false,
+        bio: "",
+        image_path: "",
+        image_url: "",
+        profile_context: "",
+      };
+      profile = await createProfile(newProfile);
+      setProfile(profile);
     }
 
     const updateProfilePayload: TablesUpdate<"profiles"> = {
@@ -143,7 +187,7 @@ export default function SetupPage() {
       azure_openai_45_turbo_id: azureOpenai45TurboID,
       azure_openai_45_vision_id: azureOpenai45VisionID,
       azure_openai_embeddings_id: azureOpenaiEmbeddingsID
-    }
+    };
 
     const updatedProfile = await updateProfile(profile.id, updateProfilePayload);
     setProfile(updatedProfile);
