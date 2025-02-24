@@ -38,7 +38,7 @@ searchParams
       }
     }
   )
-  const session = (await supabase.auth.getSession()).data.session
+  const session = (await supabase.auth.getSession()).data.session;
 
   if (session) {
     const { data: workspaces, error } = await supabase
@@ -81,6 +81,7 @@ searchParams
       return redirect(`/login?message=${error.message}`)
     }
 
+    const userId = data.user.id;
     const { data: workspaces, error: workspacesError } = await supabase
       .from("workspaces")
       .select("*")
@@ -90,21 +91,34 @@ searchParams
     if (workspacesError) {
       throw new Error(`Workspace query failed: ${workspacesError.message}`)
     }
-    // Handle different cases
+
+    let homeWorkspace: Workspace;
     if (!workspaces || workspaces.length === 0) {
-      // No home workspace found
-      return redirect("/setup");
+      // Create a default home workspace if none exists
+      const { data: newWorkspace, error: createError } = await supabase
+        .from("workspaces")
+        .insert({
+          user_id: userId,
+          name: "Default Workspace",
+          is_home: true,
+          created_at: new Date().toISOString()
+        })
+        .select("*")
+        .single();
+
+      if (createError) {
+        throw new Error(`Workspace creation failed: ${createError.message}`);
+      }
+      homeWorkspace = newWorkspace;
     } else if (workspaces.length > 1) {
-      // Multiple home workspaces found; use the first one
-      console.warn(`Multiple home workspaces found for user ${data.user.id}. Using the first one.`);
-      const homeWorkspace = workspaces[0]; // Get the first workspace object
-      return redirect(`/${homeWorkspace.id}/chat`);
+      console.warn(`Multiple home workspaces found for user ${userId}. Using the first one.`);
+      homeWorkspace = workspaces[0];
     } else {
-      // Exactly one home workspace found
-      const homeWorkspace = workspaces[0]; // Get the single workspace object
-      return redirect(`/${homeWorkspace.id}/chat`);
+      homeWorkspace = workspaces[0];
     }
-  }
+
+    return redirect(`/${homeWorkspace.id}/chat`);
+  };
 
   const getEnvVarOrEdgeConfigValue = async (name: string) => {
     "use server"

@@ -1,6 +1,6 @@
 import { createClient } from "./src/lib/supabase/middleware"
 import { i18nRouter } from "next-i18n-router"
-import { NextResponse, type NextRequest } from "next/server"
+import { NextResponse, NextRequest } from "next/server"
 import i18nConfig from "./i18nConfig"
 
 export async function middleware(request: NextRequest) {
