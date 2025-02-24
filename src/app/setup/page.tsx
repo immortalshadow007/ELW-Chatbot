@@ -1,26 +1,27 @@
-"use client"
+"use client";
 
-import { ChatbotUIContext } from "../../context/context"
-import { getProfileByUserId, createProfile, updateProfile } from "../../db/profile"
+import { ChatbotUIContext } from "../../context/context";
+import { getProfileByUserId, createProfile, updateProfile } from "../../db/profile";
 import {
   getHomeWorkspaceByUserId,
-  getWorkspacesByUserId
-} from "../../db/workspaces"
+  getWorkspacesByUserId,
+  createWorkspace
+} from "../../db/workspaces";
 import {
   fetchHostedModels,
   fetchOpenRouterModels
-} from "../../lib/models/fetch-models"
-import { supabase } from "../../lib/supabase/browser-client"
-import { TablesInsert, TablesUpdate } from "../../supabase/types"
-import { useRouter } from "next/navigation"
-import { useContext, useEffect, useState } from "react"
-import { APIStep } from "../../components/setup/api-step"
-import { FinishStep } from "../../components/setup/finish-step"
-import { ProfileStep } from "../../components/setup/profile-step"
+} from "../../lib/models/fetch-models";
+import { supabase } from "../../lib/supabase/browser-client";
+import { TablesInsert, TablesUpdate } from "../../supabase/types";
+import { useRouter } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
+import { APIStep } from "../../components/setup/api-step";
+import { FinishStep } from "../../components/setup/finish-step";
+import { ProfileStep } from "../../components/setup/profile-step";
 import {
   SETUP_STEP_COUNT,
   StepContainer
-} from "../../components/setup/step-container"
+} from "../../components/setup/step-container";
 
 export default function SetupPage() {
   const {
@@ -31,39 +32,39 @@ export default function SetupPage() {
     setEnvKeyMap,
     setAvailableHostedModels,
     setAvailableOpenRouterModels
-  } = useContext(ChatbotUIContext)
+  } = useContext(ChatbotUIContext);
 
-  const router = useRouter()
+  const router = useRouter();
 
-  const [loading, setLoading] = useState(true)
-
-  const [currentStep, setCurrentStep] = useState(1)
+  const [loading, setLoading] = useState(true);
+  const [currentStep, setCurrentStep] = useState(1);
 
   // Profile Step
-  const [displayName, setDisplayName] = useState("")
-  const [username, setUsername] = useState(profile?.username || "")
-  const [usernameAvailable, setUsernameAvailable] = useState(true)
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState(profile?.username || "");
+  const [usernameAvailable, setUsernameAvailable] = useState(true);
 
   // API Step
-  const [useAzureOpenai, setUseAzureOpenai] = useState(false)
-  const [openaiAPIKey, setOpenaiAPIKey] = useState("")
-  const [openaiOrgID, setOpenaiOrgID] = useState("")
-  const [azureOpenaiAPIKey, setAzureOpenaiAPIKey] = useState("")
-  const [azureOpenaiEndpoint, setAzureOpenaiEndpoint] = useState("")
-  const [azureOpenai35TurboID, setAzureOpenai35TurboID] = useState("")
-  const [azureOpenai45TurboID, setAzureOpenai45TurboID] = useState("")
-  const [azureOpenai45VisionID, setAzureOpenai45VisionID] = useState("")
-  const [azureOpenaiEmbeddingsID, setAzureOpenaiEmbeddingsID] = useState("")
-  const [anthropicAPIKey, setAnthropicAPIKey] = useState("")
-  const [googleGeminiAPIKey, setGoogleGeminiAPIKey] = useState("")
-  const [mistralAPIKey, setMistralAPIKey] = useState("")
-  const [groqAPIKey, setGroqAPIKey] = useState("")
-  const [perplexityAPIKey, setPerplexityAPIKey] = useState("")
-  const [openrouterAPIKey, setOpenrouterAPIKey] = useState("")
+  const [useAzureOpenai, setUseAzureOpenai] = useState(false);
+  const [openaiAPIKey, setOpenaiAPIKey] = useState("");
+  const [openaiOrgID, setOpenaiOrgID] = useState("");
+  const [azureOpenaiAPIKey, setAzureOpenaiAPIKey] = useState("");
+  const [azureOpenaiEndpoint, setAzureOpenaiEndpoint] = useState("");
+  const [azureOpenai35TurboID, setAzureOpenai35TurboID] = useState("");
+  const [azureOpenai45TurboID, setAzureOpenai45TurboID] = useState("");
+  const [azureOpenai45VisionID, setAzureOpenai45VisionID] = useState("");
+  const [azureOpenaiEmbeddingsID, setAzureOpenaiEmbeddingsID] = useState("");
+  const [anthropicAPIKey, setAnthropicAPIKey] = useState("");
+  const [googleGeminiAPIKey, setGoogleGeminiAPIKey] = useState("");
+  const [mistralAPIKey, setMistralAPIKey] = useState("");
+  const [groqAPIKey, setGroqAPIKey] = useState("");
+  const [perplexityAPIKey, setPerplexityAPIKey] = useState("");
+  const [openrouterAPIKey, setOpenrouterAPIKey] = useState("");
 
   useEffect(() => {
     (async () => {
       const session = (await supabase.auth.getSession()).data.session;
+      console.log("Session:", session);
 
       if (!session) {
         return router.push("/login");
@@ -71,8 +72,8 @@ export default function SetupPage() {
 
       const user = session.user;
       let profile = await getProfileByUserId(user.id);
+      console.log("Profile:", profile);
 
-      // If no profile exists, we'll rely on the form to create it later
       if (profile) {
         setProfile(profile);
         setUsername(profile.username);
@@ -102,13 +103,15 @@ export default function SetupPage() {
     if (proceed) {
       if (currentStep === 1) {
         const session = (await supabase.auth.getSession()).data.session;
+        console.log("Session:", session);
         if (!session) {
           return router.push("/login");
         }
-  
+
         const user = session.user;
         let profile = await getProfileByUserId(user.id);
-  
+        console.log("Profile:", profile);
+
         if (!profile) {
           try {
             const newProfile: TablesInsert<"profiles"> = {
@@ -120,18 +123,18 @@ export default function SetupPage() {
               bio: "",
               image_path: "",
               image_url: "",
-              profile_context: "",
+              profile_context: ""
             };
             profile = await createProfile(newProfile);
             setProfile(profile);
           } catch (error) {
             console.error("Failed to create profile:", error);
             alert("Error creating profile. Please try again.");
-            return; // Prevent proceeding if profile creation fails
+            return;
           }
         }
       }
-  
+
       if (currentStep === SETUP_STEP_COUNT) {
         await handleSaveSetupSetting();
       } else {
@@ -144,12 +147,14 @@ export default function SetupPage() {
 
   const handleSaveSetupSetting = async () => {
     const session = (await supabase.auth.getSession()).data.session;
+    console.log("Session:", session);
     if (!session) {
-      return router.push("/login")
+      return router.push("/login");
     }
 
-    const user = session.user
+    const user = session.user;
     let profile = await getProfileByUserId(user.id);
+    console.log("Profile:", profile);
 
     if (!profile) {
       const newProfile: TablesInsert<"profiles"> = {
@@ -161,10 +166,16 @@ export default function SetupPage() {
         bio: "",
         image_path: "",
         image_url: "",
-        profile_context: "",
+        profile_context: ""
       };
-      profile = await createProfile(newProfile);
-      setProfile(profile);
+      try {
+        profile = await createProfile(newProfile);
+        setProfile(profile);
+      } catch (error) {
+        console.error("Profile creation failed:", error);
+        alert("Failed to create profile. Please try again.");
+        return router.push("/login");
+      }
     }
 
     const updateProfilePayload: TablesUpdate<"profiles"> = {
@@ -189,22 +200,58 @@ export default function SetupPage() {
       azure_openai_embeddings_id: azureOpenaiEmbeddingsID
     };
 
-    const updatedProfile = await updateProfile(profile.id, updateProfilePayload);
-    setProfile(updatedProfile);
+    try {
+      const updatedProfile = await updateProfile(profile.id, updateProfilePayload);
+      setProfile(updatedProfile);
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      alert("Failed to update profile. Please try again.");
+      return router.push("/login");
+    }
 
-    const workspaces = await getWorkspacesByUserId(profile.user_id)
-    const homeWorkspace = workspaces.find(w => w.is_home)
+    let workspaces = await getWorkspacesByUserId(profile.user_id);
+    let homeWorkspace = workspaces.find(w => w.is_home);
 
-    // There will always be a home workspace
-    setSelectedWorkspace(homeWorkspace!)
-    setWorkspaces(workspaces)
+    // Create a default home workspace if none exists
+    if (!homeWorkspace) {
+      const newWorkspace: TablesInsert<"workspaces"> = {
+        user_id: profile.user_id,
+        name: "Default Workspace",
+        is_home: true,
+        created_at: new Date().toISOString(),
+        default_context_length: 0,
+        default_model: "",
+        default_prompt: "",
+        default_temperature: 0,
+        description: "",
+        embeddings_provider: "",
+        include_profile_context: false,
+        include_workspace_instructions: false,
+        instructions: ""
+      };
+      try {
+        homeWorkspace = await createWorkspace(newWorkspace);
+        workspaces = [...workspaces, homeWorkspace];
+      } catch (error) {
+        console.error("Workspace creation failed:", error);
+        alert("Failed to create a workspace. Please try again.");
+        return router.push("/login");
+      }
+    }
 
-    return router.push(`/${homeWorkspace?.id}/chat`)
-  }
+    setSelectedWorkspace(homeWorkspace);
+    setWorkspaces(workspaces);
+
+    if (!homeWorkspace?.id) {
+      console.error("Home workspace ID is undefined after creation");
+      return router.push("/login");
+    }
+
+    return router.push(`/${homeWorkspace.id}/chat`);
+  };
 
   const renderStep = (stepNum: number) => {
     switch (stepNum) {
-      // Profile Step
       case 1:
         return (
           <StepContainer
@@ -224,9 +271,8 @@ export default function SetupPage() {
               onDisplayNameChange={setDisplayName}
             />
           </StepContainer>
-        )
+        );
 
-      // API Step
       case 2:
         return (
           <StepContainer
@@ -270,9 +316,8 @@ export default function SetupPage() {
               onOpenrouterAPIKeyChange={setOpenrouterAPIKey}
             />
           </StepContainer>
-        )
+        );
 
-      // Finish Step
       case 3:
         return (
           <StepContainer
@@ -285,19 +330,19 @@ export default function SetupPage() {
           >
             <FinishStep displayName={displayName} />
           </StepContainer>
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   if (loading) {
-    return null
+    return null;
   }
 
   return (
     <div className="flex h-full items-center justify-center">
       {renderStep(currentStep)}
     </div>
-  )
+  );
 }

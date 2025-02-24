@@ -1,34 +1,32 @@
-"use client"
+"use client";
 
-import { Dashboard } from "../../components/ui/dashboard"
-import { ChatbotUIContext } from "../../context/context"
-import { getAssistantWorkspacesByWorkspaceId } from "../../db/assistants"
-import { getChatsByWorkspaceId } from "../../db/chats"
-import { getCollectionWorkspacesByWorkspaceId } from "../../db/collections"
-import { getFileWorkspacesByWorkspaceId } from "../../db/files"
-import { getFoldersByWorkspaceId } from "../../db/folders"
-import { getModelWorkspacesByWorkspaceId } from "../../db/models"
-import { getPresetWorkspacesByWorkspaceId } from "../../db/presets"
-import { getPromptWorkspacesByWorkspaceId } from "../../db/prompts"
-import { getAssistantImageFromStorage } from "../../db/storage/assistant-images"
-import { getToolWorkspacesByWorkspaceId } from "../../db/tools"
-import { getWorkspaceById } from "../../db/workspaces"
-import { convertBlobToBase64 } from "../../lib/blob-to-b64"
-import { supabase } from "../../lib/supabase/browser-client"
-import { LLMID } from "../../types"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { ReactNode, useContext, useEffect, useState } from "react"
-import Loading from "../loading"
+import { Dashboard } from "../../components/ui/dashboard";
+import { ChatbotUIContext } from "../../context/context";
+import { getAssistantWorkspacesByWorkspaceId } from "../../db/assistants";
+import { getChatsByWorkspaceId } from "../../db/chats";
+import { getCollectionWorkspacesByWorkspaceId } from "../../db/collections";
+import { getFileWorkspacesByWorkspaceId } from "../../db/files";
+import { getFoldersByWorkspaceId } from "../../db/folders";
+import { getModelWorkspacesByWorkspaceId } from "../../db/models";
+import { getPresetWorkspacesByWorkspaceId } from "../../db/presets";
+import { getPromptWorkspacesByWorkspaceId } from "../../db/prompts";
+import { getAssistantImageFromStorage } from "../../db/storage/assistant-images";
+import { getToolWorkspacesByWorkspaceId } from "../../db/tools";
+import { getWorkspaceById } from "../../db/workspaces";
+import { convertBlobToBase64 } from "../../lib/blob-to-b64";
+import { supabase } from "../../lib/supabase/browser-client";
+import { LLMID } from "../../types";
+import { useParams, useRouter } from "next/navigation";
+import { ReactNode, useContext, useEffect, useState } from "react";
+import Loading from "../loading";
 
 interface WorkspaceLayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
-  const router = useRouter()
-
-  const params = useParams()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const params = useParams();
   const workspaceId = params.workspaceid as string | undefined;
 
   const {
@@ -43,7 +41,6 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
     setPrompts,
     setTools,
     setModels,
-    selectedWorkspace,
     setSelectedWorkspace,
     setSelectedChat,
     setChatMessages,
@@ -54,90 +51,81 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
     setChatImages,
     setNewMessageFiles,
     setNewMessageImages,
-    setShowFilesDisplay
-  } = useContext(ChatbotUIContext)
+    setShowFilesDisplay,
+  } = useContext(ChatbotUIContext);
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
 
   // Utility to validate UUID
   const isValidUUID = (id: string): boolean => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-    return uuidRegex.test(id)
-  }
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+  };
 
   useEffect(() => {
-    (async () => {
+    const initializeWorkspace = async () => {
+      setLoading(true);
+
+      // Validate workspaceId before proceeding
+      if (!workspaceId || workspaceId === "undefined" || !isValidUUID(workspaceId)) {
+        console.error(`Invalid workspaceId format: "${workspaceId}"`);
+        router.push("/login");
+        return;
+      }
+
       try {
+        // Check authentication first
         const { data, error } = await supabase.auth.getSession();
         if (error) {
           console.error("Error fetching session:", error.message);
-          return router.push("/login");
+          router.push("/login");
+          return;
         }
-  
+
         const session = data.session;
         if (!session) {
-          return router.push("/login");
+          router.push("/login");
+          return;
         }
-  
-        if (!workspaceId || !isValidUUID(workspaceId)) {
-          console.error("Invalid workspaceId:", workspaceId);
-          router.push("/workspaces");
-        } else {
-          await fetchWorkspaceData(workspaceId);
-        }
-      } catch (error) {
-        console.error("Authentication error:", error);
-        router.push("/login"); // Redirect to login on any auth failure
-      }
-    })();
-  }, [workspaceId, router])
 
-  useEffect(() => {
-    if (!workspaceId || !isValidUUID(workspaceId)) {
-      console.error("Invalid workspaceId:", workspaceId);
-      router.push("/workspaces");
-      return;
-    }
-
-    (async () => {
-      try {
+        // Fetch workspace data only if authenticated and workspaceId is valid
         await fetchWorkspaceData(workspaceId);
       } catch (error) {
-        console.error("Error fetching workspace data:", error);
-        router.push("/workspaces");
+        console.error("Authentication or initialization error:", error);
+        router.push("/login");
+      } finally {
+        setLoading(false);
       }
-    })();
+    };
 
-    setUserInput("")
-    setChatMessages([])
-    setSelectedChat(null)
-    setIsGenerating(false)
-    setFirstTokenReceived(false)
-    setChatFiles([])
-    setChatImages([])
-    setNewMessageFiles([])
-    setNewMessageImages([])
-    setShowFilesDisplay(false)
-  }, [workspaceId])
+    initializeWorkspace();
+
+    // Reset chat-related state when workspace changes
+    setUserInput("");
+    setChatMessages([]);
+    setSelectedChat(null);
+    setIsGenerating(false);
+    setFirstTokenReceived(false);
+    setChatFiles([]);
+    setChatImages([]);
+    setNewMessageFiles([]);
+    setNewMessageImages([]);
+    setShowFilesDisplay(false);
+  }, [workspaceId, router]);
 
   const fetchWorkspaceData = async (workspaceId: string) => {
-    if (!isValidUUID(workspaceId)) {
-      console.error("fetchWorkspaceData called with invalid workspaceId:", workspaceId);
-      router.push("/workspaces");
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
     try {
       const workspace = await getWorkspaceById(workspaceId);
       if (!workspace) {
         console.error("Workspace not found for ID:", workspaceId);
-        router.push("/workspaces");
-        return;
+        throw new Error("Workspace not found");
       }
       setSelectedWorkspace(workspace);
+
       const assistantData = await getAssistantWorkspacesByWorkspaceId(workspaceId);
       setAssistants(assistantData.assistants);
+
       for (const assistant of assistantData.assistants) {
         let url = "";
         if (assistant.image_path) {
@@ -158,22 +146,31 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
           ]);
         }
       }
+
       const chats = await getChatsByWorkspaceId(workspaceId);
       setChats(chats);
+
       const collectionData = await getCollectionWorkspacesByWorkspaceId(workspaceId);
       setCollections(collectionData.collections);
+
       const folders = await getFoldersByWorkspaceId(workspaceId);
       setFolders(folders);
+
       const fileData = await getFileWorkspacesByWorkspaceId(workspaceId);
       setFiles(fileData.files);
+
       const presetData = await getPresetWorkspacesByWorkspaceId(workspaceId);
       setPresets(presetData.presets);
+
       const promptData = await getPromptWorkspacesByWorkspaceId(workspaceId);
       setPrompts(promptData.prompts);
+
       const toolData = await getToolWorkspacesByWorkspaceId(workspaceId);
       setTools(toolData.tools);
+
       const modelData = await getModelWorkspacesByWorkspaceId(workspaceId);
       setModels(modelData.models);
+
       setChatSettings({
         model: (workspace?.default_model || "gpt-4-1106-preview") as LLMID,
         prompt: workspace?.default_prompt || "You are a friendly, helpful AI assistant.",
@@ -185,15 +182,13 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
       });
     } catch (error) {
       console.error("Error in fetchWorkspaceData:", error);
-      router.push("/workspaces");
-    } finally {
-      setLoading(false);
+      router.push("/login");
     }
   };
 
-  if (loading || !workspaceId || workspaceId === "undefined") {
-    return <Loading />
+  if (loading) {
+    return <Loading />;
   }
 
-  return <Dashboard>{children}</Dashboard>
+  return <Dashboard>{children}</Dashboard>;
 }

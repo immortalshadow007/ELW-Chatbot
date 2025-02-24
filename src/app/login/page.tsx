@@ -25,6 +25,7 @@ searchParams
 }: {
   searchParams: { message: string }
 }) {
+  const sp = await Promise.resolve(searchParams);
   const cookieStore = await cookies()
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -234,9 +235,9 @@ searchParams
           </button>
         </div>
 
-        {searchParams?.message && (
+        {sp?.message && (
           <p className="bg-foreground/10 text-foreground mt-4 p-4 text-center">
-            {searchParams.message}
+            {sp.message}
           </p>
         )}
       </form>
