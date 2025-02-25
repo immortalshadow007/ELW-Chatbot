@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase/browser-client"
 import { TablesInsert, TablesUpdate } from "../supabase/types"
+import { Json } from "../supabase/types"
 
 export const getToolById = async (toolId: string) => {
   const { data: tool, error } = await supabase
@@ -15,24 +16,45 @@ export const getToolById = async (toolId: string) => {
   return tool
 }
 
-export const getToolWorkspacesByWorkspaceId = async (workspaceId: string) => {
-  const { data: workspace, error } = await supabase
-    .from("workspaces")
-    .select(
-      `
-      id,
-      name,
-      tools (*)
-    `
-    )
-    .eq("id", workspaceId)
-    .single()
+interface Tool {
+  id: string;
+  name: string;
+  created_at: string;
+  user_id: string;
+  custom_headers: Json;
+  description: string;
+  folder_id: string | null;
+  schema: Json;
+  sharing: string;
+  updated_at: string | null;
+  url: string;
+}
 
-  if (!workspace) {
-    throw new Error(error?.message)
+interface ToolWorkspace {
+  tool_id: string;
+  tools: Tool;
+}
+
+export async function getToolWorkspacesByWorkspaceId(workspaceId: string): Promise<{ tools: Tool[] }> {
+  const { data, error } = await supabase
+    .from("tool_workspaces")
+    .select(`
+      tool_id,
+      tools (
+        id,
+        name,
+        created_at,
+        user_id
+      )
+    `)
+    .eq("workspace_id", workspaceId);
+
+  if (error) {
+    console.error("Error fetching tools:", error.message);
+    throw error;
   }
 
-  return workspace
+  return { tools: (data as ToolWorkspace[]).map(item => item.tools) };
 }
 
 export const getToolWorkspacesByToolId = async (toolId: string) => {

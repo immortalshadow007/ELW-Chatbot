@@ -186,8 +186,27 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
       const promptData = await getPromptWorkspacesByWorkspaceId(workspaceId);
       setPrompts(promptData.prompts);
   
-      const toolData = await getToolWorkspacesByWorkspaceId(workspaceId);
-      setTools(toolData.tools);
+      const { data: toolData, error: toolError } = await supabase
+        .from("tool_workspaces")
+        .select(`
+          tool_id,
+          tools (
+            id,
+            name,
+            created_at,
+            user_id,
+            custom_headers,
+            description,
+            folder_id,
+            schema,
+            sharing,
+            updated_at,
+            url
+          )
+        `)
+        .eq("workspace_id", workspaceId);
+      if (toolError) throw toolError;
+      setTools(toolData.map(item => item.tools));
   
       const modelData = await getModelWorkspacesByWorkspaceId(workspaceId);
       setModels(modelData.models);

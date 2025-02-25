@@ -15,24 +15,42 @@ export const getPromptById = async (promptId: string) => {
   return prompt
 }
 
-export const getPromptWorkspacesByWorkspaceId = async (workspaceId: string) => {
-  const { data: workspace, error } = await supabase
-    .from("workspaces")
-    .select(
-      `
-      id,
-      name,
-      prompts (*)
-    `
-    )
-    .eq("id", workspaceId)
-    .single()
+interface Prompt {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  name: string;
+  folder_id: string | null;
+  sharing: string;
+  updated_at: string | null;
+}
 
-  if (!workspace) {
-    throw new Error(error?.message)
-  }
+interface PromptWorkspace {
+  prompt_id: string;
+  prompts: Prompt;
+}
 
-  return workspace
+export async function getPromptWorkspacesByWorkspaceId(workspaceId: string): Promise<{ prompts: Prompt[] }> {
+  const { data, error } = await supabase
+    .from("prompt_workspaces")
+    .select(`
+      prompt_id,
+      prompts (
+        id,
+        content,
+        created_at,
+        user_id,
+        name,
+        folder_id,
+        sharing,
+        updated_at
+      )
+    `)
+    .eq("workspace_id", workspaceId);
+
+  if (error) throw error;
+  return { prompts: (data as PromptWorkspace[]).map(item => item.prompts) };
 }
 
 export const getPromptWorkspacesByPromptId = async (promptId: string) => {

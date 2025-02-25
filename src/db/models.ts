@@ -15,24 +15,46 @@ export const getModelById = async (modelId: string) => {
   return model
 }
 
-export const getModelWorkspacesByWorkspaceId = async (workspaceId: string) => {
-  const { data: workspace, error } = await supabase
-    .from("workspaces")
-    .select(
-      `
-      id,
-      name,
-      models (*)
-    `
-    )
-    .eq("id", workspaceId)
-    .single()
+interface Model {
+  api_key: string;
+  base_url: string;
+  context_length: number;
+  created_at: string;
+  description: string;
+  folder_id: string | null;
+  id: string;
+  model_id: string;
+  name: string;
+  sharing: string;
+  updated_at: string | null;
+  user_id: string;
+}
 
-  if (!workspace) {
-    throw new Error(error?.message)
+interface ModelWorkspace {
+  model_id: string;
+  models: Model;
+}
+
+export async function getModelWorkspacesByWorkspaceId(workspaceId: string): Promise<{ models: Model[] }> {
+  const { data, error } = await supabase
+    .from("model_workspaces")
+    .select(`
+      model_id,
+      models (
+        id,
+        name,
+        created_at,
+        user_id
+      )
+    `)
+    .eq("workspace_id", workspaceId);
+
+  if (error) {
+    console.error("Error fetching models:", error.message);
+    throw error;
   }
 
-  return workspace
+  return { models: (data as ModelWorkspace[]).map(item => item.models) };
 }
 
 export const getModelWorkspacesByModelId = async (modelId: string) => {
