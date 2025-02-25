@@ -122,10 +122,10 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
         throw new Error("Workspace not found");
       }
       setSelectedWorkspace(workspace);
-
+  
       const assistantData = await getAssistantWorkspacesByWorkspaceId(workspaceId);
       setAssistants(assistantData.assistants);
-
+  
       for (const assistant of assistantData.assistants) {
         let url = "";
         if (assistant.image_path) {
@@ -146,31 +146,52 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
           ]);
         }
       }
-
+  
       const chats = await getChatsByWorkspaceId(workspaceId);
       setChats(chats);
-
-      const collectionData = await getCollectionWorkspacesByWorkspaceId(workspaceId);
-      setCollections(collectionData.collections);
-
+  
+      const { data: collectionData, error } = await supabase
+        .from("collection_workspaces")
+        .select(`
+          collection_id,
+          collections (
+            id,
+            name,
+            description,
+            created_at,
+            sharing,
+            updated_at,
+            user_id,
+            folder_id
+          )
+        `)
+        .eq("workspace_id", workspaceId);
+  
+      if (error) {
+        console.error("Error fetching collection data for workspace:", error.message);
+        throw new Error(error.message);
+      }
+  
+      setCollections(collectionData.map((item) => item.collections));
+  
       const folders = await getFoldersByWorkspaceId(workspaceId);
       setFolders(folders);
-
+  
       const fileData = await getFileWorkspacesByWorkspaceId(workspaceId);
       setFiles(fileData.files);
-
+  
       const presetData = await getPresetWorkspacesByWorkspaceId(workspaceId);
       setPresets(presetData.presets);
-
+  
       const promptData = await getPromptWorkspacesByWorkspaceId(workspaceId);
       setPrompts(promptData.prompts);
-
+  
       const toolData = await getToolWorkspacesByWorkspaceId(workspaceId);
       setTools(toolData.tools);
-
+  
       const modelData = await getModelWorkspacesByWorkspaceId(workspaceId);
       setModels(modelData.models);
-
+  
       setChatSettings({
         model: (workspace?.default_model || "gpt-4-1106-preview") as LLMID,
         prompt: workspace?.default_prompt || "You are a friendly, helpful AI assistant.",

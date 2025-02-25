@@ -38,7 +38,7 @@ searchParams
       }
     }
   )
-  const session = (await supabase.auth.getSession()).data.session;
+  const session = (await supabase.auth.getSession()).data.session
 
   if (session) {
     const { data: workspaces, error } = await supabase

@@ -2,11 +2,16 @@ import { supabase } from "../lib/supabase/browser-client"
 import { TablesInsert, TablesUpdate } from "../supabase/types"
 
 export const getChatById = async (chatId: string) => {
-  const { data: chat } = await supabase
+  const { data: chat, error } = await supabase
     .from("chats")
     .select("*")
     .eq("id", chatId)
     .maybeSingle()
+  
+  if (error) {
+    console.error("Error fetching chat by ID:", error);
+    throw new Error(error.message);
+  }
 
   return chat
 }
@@ -18,11 +23,12 @@ export const getChatsByWorkspaceId = async (workspaceId: string) => {
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false })
 
-  if (!chats) {
-    throw new Error(error.message)
+  if (error) {
+    console.error("Error fetching chats by workspace ID:", error);
+    throw new Error(error.message);
   }
 
-  return chats
+  return chats || [];
 }
 
 export const createChat = async (chat: TablesInsert<"chats">) => {
@@ -33,10 +39,11 @@ export const createChat = async (chat: TablesInsert<"chats">) => {
     .single()
 
   if (error) {
-    throw new Error(error.message)
+    console.error("Error creating chat:", error);
+    throw new Error(error.message);
   }
 
-  return createdChat
+  return createdChat;
 }
 
 export const createChats = async (chats: TablesInsert<"chats">[]) => {
@@ -46,7 +53,8 @@ export const createChats = async (chats: TablesInsert<"chats">[]) => {
     .select("*")
 
   if (error) {
-    throw new Error(error.message)
+    console.error("Error creating multiple chats:", error);
+    throw new Error(error.message);
   }
 
   return createdChats
@@ -64,18 +72,20 @@ export const updateChat = async (
     .single()
 
   if (error) {
-    throw new Error(error.message)
+    console.error("Error creating multiple chats:", error);
+    throw new Error(error.message);
   }
 
-  return updatedChat
+  return updatedChat;
 }
 
 export const deleteChat = async (chatId: string) => {
-  const { error } = await supabase.from("chats").delete().eq("id", chatId)
+  const { error } = await supabase.from("chats").delete().eq("id", chatId);
 
   if (error) {
+    console.error("Error deleting chat:", error);
     throw new Error(error.message)
   }
 
-  return true
+  return true;
 }
