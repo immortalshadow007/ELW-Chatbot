@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "tailwind:init": "node node_modules/tailwindcss/dist/cli.mjs init -p"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^1.1.13",
+    "@ai-sdk/azure": "^1.1.15",
     "@anthropic-ai/sdk": "^0.36.3",
     "@apidevtools/json-schema-ref-parser": "^11.9.1",
     "@azure/openai": "^2.0.0",
@@ -54,8 +57,7 @@
     "@vercel/analytics": "^1.5.0",
     "@vercel/edge-config": "^1.4.0",
     "@xenova/transformers": "^2.17.2",
-    "ai": "^4.1.42",
-    "autoprefixer": "^10.4.20",
+    "ai": "^4.1.48",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
@@ -79,7 +81,6 @@
     "openai": "^4.85.2",
     "pdf-parse": "^1.1.1",
     "pg": "^8.13.3",
-    "postcss": "^8.5.2",
     "radix-ui": "^1.1.3",
     "react": "^19.0.0",
     "react-day-picker": "^9.5.1",
@@ -104,8 +105,12 @@
     "@types/react-dom": "^19.0.4",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/uuid": "^10.0.0",
+    "autoprefixer": "^10.4.20",
     "eslint": "^9.20.1",
     "eslint-config-next": "^15.1.7",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.0.9",
+    "tailwindcss-cli": "^0.1.2",
     "typescript": "^5.7.3"
   }
 }

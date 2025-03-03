@@ -1106,7 +1106,6 @@ export type Database = {
           anthropic_api_key: string | null
           azure_openai_35_turbo_id: string | null
           azure_openai_45_turbo_id: string | null
-          azure_openai_45_vision_id: string | null
           azure_openai_api_key: string | null
           azure_openai_embeddings_id: string | null
           azure_openai_endpoint: string | null
@@ -1114,7 +1113,7 @@ export type Database = {
           created_at: string
           display_name: string
           google_gemini_api_key: string | null
-          groq_api_key: string | null
+          llama_api_key: string | null
           has_onboarded: boolean
           id: string
           image_path: string
@@ -1142,7 +1141,7 @@ export type Database = {
           created_at?: string
           display_name: string
           google_gemini_api_key?: string | null
-          groq_api_key?: string | null
+          llama_api_key?: string | null
           has_onboarded?: boolean
           id?: string
           image_path: string
@@ -1170,7 +1169,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           google_gemini_api_key?: string | null
-          groq_api_key?: string | null
+          llama_api_key?: string | null
           has_onboarded?: boolean
           id?: string
           image_path?: string

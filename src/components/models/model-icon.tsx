@@ -48,14 +48,14 @@ export const ModelIcon: FC<ModelIconProps> = ({
           height={height}
         />
       )
-    case "groq":
+    case "llama-api":
       return (
         <Image
           className={cn(
             "rounded-sm p-0",
             theme === "dark" ? "bg-white" : "border-DEFAULT border-black"
           )}
-          src="/providers/groq.png"
+          src="/providers/meta.png"
           alt="Groq"
           width={width}
           height={height}

@@ -19,7 +19,7 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
           className
         )}
         ref={ref}
-        value={hydrated ? value : ""} // Default to empty until hydrated
+        value={hydrated ? (value ?? "") : ""} // Default to empty until hydrated
         {...props}
       />
     )

@@ -230,11 +230,13 @@ export const Message: FC<MessageProps> = ({
                   <WithTooltip
                     display={<div>{MODEL_DATA?.modelName}</div>}
                     trigger={
-                      <ModelIcon
-                        provider={modelDetails?.provider || "custom"}
-                        height={ICON_SIZE}
-                        width={ICON_SIZE}
-                      />
+                      <div>
+                        <ModelIcon
+                          provider={modelDetails?.provider || "custom"}
+                          height={ICON_SIZE}
+                          width={ICON_SIZE}
+                        />
+                      </div>
                     }
                   />
                 )
