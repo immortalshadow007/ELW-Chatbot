@@ -92,12 +92,15 @@ export default async function RootLayout({
       },
     }
   );
-  const session = (await supabase.auth.getSession()).data.session;
+  const { data: { user }, error } = await supabase.auth.getUser();
   const { t, resources } = await initTranslations(locale, i18nNamespaces);
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${inter.className}`}>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} ${inter.className}`}
+          suppressHydrationWarning
+        >
         <Providers attribute="class" defaultTheme="dark">
           <TranslationsProvider
             namespaces={i18nNamespaces}
@@ -106,7 +109,7 @@ export default async function RootLayout({
           >
             <Toaster richColors position="top-center" duration={3000} />
             <div className="bg-background text-foreground flex h-dvh flex-col items-center overflow-x-auto">
-              {session ? <GlobalState>{children}</GlobalState> : children}
+              {user ? <GlobalState>{children}</GlobalState> : children}
             </div>
           </TranslationsProvider>
         </Providers>

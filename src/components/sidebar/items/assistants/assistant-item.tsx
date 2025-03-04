@@ -1,64 +1,60 @@
-import { ChatSettingsForm } from "../../../../components/ui/chat-settings-form"
-import ImagePicker from "../../../../components/ui/image-picker"
-import { Input } from "../../../../components/ui/input"
-import { Label } from "../../../../components/ui/label"
-import { ChatbotUIContext } from "../../../../context/context"
-import { ASSISTANT_DESCRIPTION_MAX, ASSISTANT_NAME_MAX } from "../../../../db/limits"
-import { Tables } from "../../../../supabase/types"
-import { IconRobotFace } from "@tabler/icons-react"
-import Image from "next/image"
-import { FC, useContext, useEffect, useState } from "react"
-import profile from "react-syntax-highlighter/dist/esm/languages/hljs/profile"
-import { SidebarItem } from "../all/sidebar-display-item"
-import { AssistantRetrievalSelect } from "./assistant-retrieval-select"
-import { AssistantToolSelect } from "./assistant-tool-select"
+import { ChatSettingsForm } from "../../../../components/ui/chat-settings-form";
+import ImagePicker from "../../../../components/ui/image-picker";
+import { Input } from "../../../../components/ui/input";
+import { Label } from "../../../../components/ui/label";
+import { ChatbotUIContext } from "../../../../context/context";
+import { ASSISTANT_DESCRIPTION_MAX, ASSISTANT_NAME_MAX } from "../../../../db/limits";
+import { Tables } from "../../../../supabase/types";
+import { IconRobotFace } from "@tabler/icons-react";
+import Image from "next/image";
+import { FC, useContext, useEffect, useState } from "react";
+import { SidebarItem } from "../all/sidebar-display-item";
+import { AssistantRetrievalSelect } from "./assistant-retrieval-select";
+import { AssistantToolSelect } from "./assistant-tool-select";
 
 interface AssistantItemProps {
-  assistant: Tables<"assistants">
+  assistant: Tables<"assistants">;
 }
 
 export const AssistantItem: FC<AssistantItemProps> = ({ assistant }) => {
-  const { selectedWorkspace, assistantImages } = useContext(ChatbotUIContext)
+  const { selectedWorkspace, assistantImages } = useContext(ChatbotUIContext);
 
-  const [name, setName] = useState(assistant.name)
-  const [isTyping, setIsTyping] = useState(false)
-  const [description, setDescription] = useState(assistant.description)
+  const [name, setName] = useState(assistant.name);
+  const [isTyping, setIsTyping] = useState(false);
+  const [description, setDescription] = useState(assistant.description);
   const [assistantChatSettings, setAssistantChatSettings] = useState({
     model: assistant.model,
     prompt: assistant.prompt,
     temperature: assistant.temperature,
     contextLength: assistant.context_length,
     includeProfileContext: assistant.include_profile_context,
-    includeWorkspaceInstructions: assistant.include_workspace_instructions
-  })
-  const [selectedImage, setSelectedImage] = useState<File | null>(null)
-  const [imageLink, setImageLink] = useState("")
+    includeWorkspaceInstructions: assistant.include_workspace_instructions,
+  });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imageLink, setImageLink] = useState("");
 
   useEffect(() => {
     const assistantImage =
-      assistantImages.find(image => image.path === assistant.image_path)
-        ?.base64 || ""
-    setImageLink(assistantImage)
-  }, [assistant, assistantImages])
+      assistantImages.find((image) => image.path === assistant.image_path)?.base64 || "";
+    setImageLink(assistantImage);
+  }, [assistant, assistantImages]);
 
   const handleFileSelect = (
     file: Tables<"files">,
-    setSelectedAssistantFiles: React.Dispatch<
-      React.SetStateAction<Tables<"files">[]>
-    >
+    setSelectedAssistantFiles: React.Dispatch<React.SetStateAction<Tables<"files">[]>>
   ) => {
-    setSelectedAssistantFiles(prevState => {
+    setSelectedAssistantFiles((prevState) => {
       const isFileAlreadySelected = prevState.find(
-        selectedFile => selectedFile.id === file.id
-      )
+        (selectedFile) => selectedFile.id === file.id
+      );
 
       if (isFileAlreadySelected) {
-        return prevState.filter(selectedFile => selectedFile.id !== file.id)
+        return prevState.filter((selectedFile) => selectedFile.id !== file.id);
       } else {
-        return [...prevState, file]
+        return [...prevState, file];
       }
-    })
-  }
+    });
+  };
 
   const handleCollectionSelect = (
     collection: Tables<"collections">,
@@ -66,42 +62,39 @@ export const AssistantItem: FC<AssistantItemProps> = ({ assistant }) => {
       React.SetStateAction<Tables<"collections">[]>
     >
   ) => {
-    setSelectedAssistantCollections(prevState => {
+    setSelectedAssistantCollections((prevState) => {
       const isCollectionAlreadySelected = prevState.find(
-        selectedCollection => selectedCollection.id === collection.id
-      )
+        (selectedCollection) => selectedCollection.id === collection.id
+      );
 
       if (isCollectionAlreadySelected) {
         return prevState.filter(
-          selectedCollection => selectedCollection.id !== collection.id
-        )
+          (selectedCollection) => selectedCollection.id !== collection.id
+        );
       } else {
-        return [...prevState, collection]
+        return [...prevState, collection];
       }
-    })
-  }
+    });
+  };
 
   const handleToolSelect = (
     tool: Tables<"tools">,
-    setSelectedAssistantTools: React.Dispatch<
-      React.SetStateAction<Tables<"tools">[]>
-    >
+    setSelectedAssistantTools: React.Dispatch<React.SetStateAction<Tables<"tools">[]>>
   ) => {
-    setSelectedAssistantTools(prevState => {
+    setSelectedAssistantTools((prevState) => {
       const isToolAlreadySelected = prevState.find(
-        selectedTool => selectedTool.id === tool.id
-      )
+        (selectedTool) => selectedTool.id === tool.id
+      );
 
       if (isToolAlreadySelected) {
-        return prevState.filter(selectedTool => selectedTool.id !== tool.id)
+        return prevState.filter((selectedTool) => selectedTool.id !== tool.id);
       } else {
-        return [...prevState, tool]
+        return [...prevState, tool];
       }
-    })
-  }
+    });
+  };
 
-  if (!profile) return null
-  if (!selectedWorkspace) return null
+  if (!selectedWorkspace) return null;
 
   return (
     <SidebarItem
@@ -137,34 +130,36 @@ export const AssistantItem: FC<AssistantItemProps> = ({ assistant }) => {
         model: assistantChatSettings.model,
         image_path: assistant.image_path,
         prompt: assistantChatSettings.prompt,
-        temperature: assistantChatSettings.temperature
+        temperature: assistantChatSettings.temperature,
       }}
-      renderInputs={(renderState: {
-        startingAssistantFiles: Tables<"files">[]
-        setStartingAssistantFiles: React.Dispatch<
-          React.SetStateAction<Tables<"files">[]>
-        >
-        selectedAssistantFiles: Tables<"files">[]
-        setSelectedAssistantFiles: React.Dispatch<
-          React.SetStateAction<Tables<"files">[]>
-        >
-        startingAssistantCollections: Tables<"collections">[]
-        setStartingAssistantCollections: React.Dispatch<
-          React.SetStateAction<Tables<"collections">[]>
-        >
-        selectedAssistantCollections: Tables<"collections">[]
-        setSelectedAssistantCollections: React.Dispatch<
-          React.SetStateAction<Tables<"collections">[]>
-        >
-        startingAssistantTools: Tables<"tools">[]
-        setStartingAssistantTools: React.Dispatch<
-          React.SetStateAction<Tables<"tools">[]>
-        >
-        selectedAssistantTools: Tables<"tools">[]
-        setSelectedAssistantTools: React.Dispatch<
-          React.SetStateAction<Tables<"tools">[]>
-        >
-      }) => (
+      renderInputs={(
+        renderState: {
+          startingAssistantFiles: Tables<"files">[];
+          setStartingAssistantFiles: React.Dispatch<
+            React.SetStateAction<Tables<"files">[]>
+          >;
+          selectedAssistantFiles: Tables<"files">[];
+          setSelectedAssistantFiles: React.Dispatch<
+            React.SetStateAction<Tables<"files">[]>
+          >;
+          startingAssistantCollections: Tables<"collections">[];
+          setStartingAssistantCollections: React.Dispatch<
+            React.SetStateAction<Tables<"collections">[]>
+          >;
+          selectedAssistantCollections: Tables<"collections">[];
+          setSelectedAssistantCollections: React.Dispatch<
+            React.SetStateAction<Tables<"collections">[]>
+          >;
+          startingAssistantTools: Tables<"tools">[];
+          setStartingAssistantTools: React.Dispatch<
+            React.SetStateAction<Tables<"tools">[]>
+          >;
+          selectedAssistantTools: Tables<"tools">[];
+          setSelectedAssistantTools: React.Dispatch<
+            React.SetStateAction<Tables<"tools">[]>
+          >;
+        }
+      ) => (
         <>
           <div className="space-y-1">
             <Label>Name</Label>
@@ -172,7 +167,7 @@ export const AssistantItem: FC<AssistantItemProps> = ({ assistant }) => {
             <Input
               placeholder="Assistant name..."
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               maxLength={ASSISTANT_NAME_MAX}
             />
           </div>
@@ -183,7 +178,7 @@ export const AssistantItem: FC<AssistantItemProps> = ({ assistant }) => {
             <Input
               placeholder="Assistant description..."
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={(e) => setDescription(e.target.value)}
               maxLength={ASSISTANT_DESCRIPTION_MAX}
             />
           </div>
@@ -214,53 +209,50 @@ export const AssistantItem: FC<AssistantItemProps> = ({ assistant }) => {
               selectedAssistantRetrievalItems={
                 [
                   ...renderState.selectedAssistantFiles,
-                  ...renderState.selectedAssistantCollections
+                  ...renderState.selectedAssistantCollections,
                 ].length === 0
                   ? [
                       ...renderState.startingAssistantFiles,
-                      ...renderState.startingAssistantCollections
+                      ...renderState.startingAssistantCollections,
                     ]
                   : [
                       ...renderState.startingAssistantFiles.filter(
-                        startingFile =>
+                        (startingFile) =>
                           ![
                             ...renderState.selectedAssistantFiles,
-                            ...renderState.selectedAssistantCollections
+                            ...renderState.selectedAssistantCollections,
                           ].some(
-                            selectedFile => selectedFile.id === startingFile.id
+                            (selectedFile) => selectedFile.id === startingFile.id
                           )
                       ),
                       ...renderState.selectedAssistantFiles.filter(
-                        selectedFile =>
+                        (selectedFile) =>
                           !renderState.startingAssistantFiles.some(
-                            startingFile => startingFile.id === selectedFile.id
+                            (startingFile) => startingFile.id === selectedFile.id
                           )
                       ),
                       ...renderState.startingAssistantCollections.filter(
-                        startingCollection =>
+                        (startingCollection) =>
                           ![
                             ...renderState.selectedAssistantFiles,
-                            ...renderState.selectedAssistantCollections
+                            ...renderState.selectedAssistantCollections,
                           ].some(
-                            selectedCollection =>
+                            (selectedCollection) =>
                               selectedCollection.id === startingCollection.id
                           )
                       ),
                       ...renderState.selectedAssistantCollections.filter(
-                        selectedCollection =>
+                        (selectedCollection) =>
                           !renderState.startingAssistantCollections.some(
-                            startingCollection =>
+                            (startingCollection) =>
                               startingCollection.id === selectedCollection.id
                           )
-                      )
+                      ),
                     ]
               }
-              onAssistantRetrievalItemsSelect={item =>
+              onAssistantRetrievalItemsSelect={(item) =>
                 "type" in item
-                  ? handleFileSelect(
-                      item,
-                      renderState.setSelectedAssistantFiles
-                    )
+                  ? handleFileSelect(item, renderState.setSelectedAssistantFiles)
                   : handleCollectionSelect(
                       item,
                       renderState.setSelectedAssistantCollections
@@ -278,20 +270,20 @@ export const AssistantItem: FC<AssistantItemProps> = ({ assistant }) => {
                   ? renderState.startingAssistantTools
                   : [
                       ...renderState.startingAssistantTools.filter(
-                        startingTool =>
+                        (startingTool) =>
                           !renderState.selectedAssistantTools.some(
-                            selectedTool => selectedTool.id === startingTool.id
+                            (selectedTool) => selectedTool.id === startingTool.id
                           )
                       ),
                       ...renderState.selectedAssistantTools.filter(
-                        selectedTool =>
+                        (selectedTool) =>
                           !renderState.startingAssistantTools.some(
-                            startingTool => startingTool.id === selectedTool.id
+                            (startingTool) => startingTool.id === selectedTool.id
                           )
-                      )
+                      ),
                     ]
               }
-              onAssistantToolsSelect={tool =>
+              onAssistantToolsSelect={(tool) =>
                 handleToolSelect(tool, renderState.setSelectedAssistantTools)
               }
             />
@@ -299,5 +291,5 @@ export const AssistantItem: FC<AssistantItemProps> = ({ assistant }) => {
         </>
       )}
     />
-  )
-}
+  );
+};

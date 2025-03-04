@@ -1,17 +1,17 @@
-import { Button } from "../../components/ui/button"
-import { useCopyToClipboard } from "../../lib/hooks/use-copy-to-clipboard"
-import { IconCheck, IconCopy, IconDownload } from "@tabler/icons-react"
-import { FC, memo } from "react"
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
-import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism"
+import { Button } from "../../components/ui/button";
+import { useCopyToClipboard } from "../../lib/hooks/use-copy-to-clipboard";
+import { IconCheck, IconCopy, IconDownload } from "@tabler/icons-react";
+import { FC, memo } from "react";
+import Highlight from "react-highlight"; // Import react-highlight
+import "highlight.js/styles/atom-one-dark.css"; // Import a Highlight.js style similar to oneDark
 
 interface MessageCodeBlockProps {
-  language: string
-  value: string
+  language: string;
+  value: string;
 }
 
 interface languageMap {
-  [key: string]: string | undefined
+  [key: string]: string | undefined;
 }
 
 export const programmingLanguages: languageMap = {
@@ -37,53 +37,50 @@ export const programmingLanguages: languageMap = {
   shell: ".sh",
   sql: ".sql",
   html: ".html",
-  css: ".css"
-}
+  css: ".css",
+};
 
 export const generateRandomString = (length: number, lowercase = false) => {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXY3456789" // excluding similar looking characters like Z, 2, I, 1, O, 0
-  let result = ""
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXY3456789"; // excluding similar looking characters
+  let result = "";
   for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return lowercase ? result.toLowerCase() : result
-}
+  return lowercase ? result.toLowerCase() : result;
+};
 
 export const MessageCodeBlock: FC<MessageCodeBlockProps> = memo(
   ({ language, value }) => {
-    const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 })
+    const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 });
 
     const downloadAsFile = () => {
       if (typeof window === "undefined") {
-        return
+        return;
       }
-      const fileExtension = programmingLanguages[language] || ".file"
-      const suggestedFileName = `file-${generateRandomString(
-        3,
-        true
-      )}${fileExtension}`
-      const fileName = window.prompt("Enter file name", suggestedFileName)
+      const fileExtension = programmingLanguages[language] || ".file";
+      const suggestedFileName = `file-${generateRandomString(3, true)}${fileExtension}`;
+      const fileName = window.prompt("Enter file name", suggestedFileName);
 
       if (!fileName) {
-        return
+        return;
       }
 
-      const blob = new Blob([value], { type: "text/plain" })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement("a")
-      link.download = fileName
-      link.href = url
-      link.style.display = "none"
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-    }
+      const blob = new Blob([value], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = fileName;
+      link.href = url;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
 
     const onCopy = () => {
-      if (isCopied) return
-      copyToClipboard(value)
-    }
+      if (isCopied) return;
+      copyToClipboard(value);
+    };
 
     return (
       <div className="codeblock relative w-full bg-zinc-950 font-sans">
@@ -109,27 +106,12 @@ export const MessageCodeBlock: FC<MessageCodeBlockProps> = memo(
             </Button>
           </div>
         </div>
-        <SyntaxHighlighter
-          language={language}
-          style={oneDark}
-          // showLineNumbers
-          customStyle={{
-            margin: 0,
-            width: "100%",
-            background: "transparent"
-          }}
-          codeTagProps={{
-            style: {
-              fontSize: "14px",
-              fontFamily: "var(--font-mono)"
-            }
-          }}
-        >
+        <Highlight className={language}>
           {value}
-        </SyntaxHighlighter>
+        </Highlight>
       </div>
-    )
+    );
   }
-)
+);
 
-MessageCodeBlock.displayName = "MessageCodeBlock"
+MessageCodeBlock.displayName = "MessageCodeBlock";
