@@ -1,16 +1,10 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cn } from "../../lib/utils"
+import * as React from "react";
+import { cn } from "../../lib/utils";
 
 const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, type, value, ...props }, ref) => {
-    // Ensure value is stable during hydration
-    const [hydrated, setHydrated] = React.useState(false);
-    React.useEffect(() => {
-      setHydrated(true);
-    }, []);
-
+  ({ className, type, defaultValue, ...props }, ref) => {
     return (
       <input
         type={type}
@@ -19,12 +13,12 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
           className
         )}
         ref={ref}
-        value={hydrated ? (value ?? "") : ""} // Default to empty until hydrated
+        defaultValue={defaultValue} // Use defaultValue for uncontrolled behavior
         {...props}
       />
-    )
+    );
   }
-)
-Input.displayName = "Input"
+);
+Input.displayName = "Input";
 
-export { Input }
+export { Input };
