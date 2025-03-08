@@ -126,7 +126,7 @@ In the 1st migration file `supabase/migrations/20240108234540_setup.sql` you wil
 
 This prevents issues with storage files not being deleted properly.
 
-There is a possibiltiy that SQL setup might fail in extremely rare case. If the SQL setup fails I recommend creating the tables in the database manually using the sql files located in `src/supabase/migrations`. If a simple and compiled query is needed please refer to the text file in the documentation folder.
+There is a possibiltiy that SQL setup might fail in extremely rare case. If the SQL setup fails I recommend creating the tables in the database manually using the sql files located in `src/supabase/migrations`. If a simple and compiled query is needed please refer to the text file in the documentation directory.
 
 ### 5. Install Ollama (optional for local models)
 
