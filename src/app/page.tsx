@@ -1,6 +1,6 @@
 "use client"
 
-import { ChatbotUISVG } from "../components/icons/chatbotui-svg"
+import { ELWSVG } from "../components/icons/chatbotui-svg"
 import { IconArrowRight } from "@tabler/icons-react"
 import { useTheme } from "next-themes"
 import styles from "./page.module.css"
@@ -17,7 +17,7 @@ export default function HomePage() {
           {/* Logo (shifted to top-left) */}
           <Link href="/">
             {/* Adjust scale to make it smaller as desired */}
-            <ChatbotUISVG theme={theme === "dark" ? "dark" : "light"} scale={0.2}/>
+            <ELWSVG theme={theme === "dark" ? "dark" : "light"} scale={0.2}/>
           </Link>
         </div>
 

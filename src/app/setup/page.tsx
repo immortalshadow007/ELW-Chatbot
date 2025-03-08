@@ -188,7 +188,7 @@ export default function SetupPage() {
       anthropic_api_key: anthropicAPIKey,
       google_gemini_api_key: googleGeminiAPIKey,
       mistral_api_key: mistralAPIKey,
-      groq_api_key: groqAPIKey,
+      llama_api_key: groqAPIKey,
       perplexity_api_key: perplexityAPIKey,
       openrouter_api_key: openrouterAPIKey,
       use_azure_openai: useAzureOpenai,
