@@ -1,0 +1,430 @@
+Table name: assistants
+
+CREATE TABLE assistants (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    CONSTRAINT assistants_workspace_id_fkey 
+        FOREIGN KEY (workspace_id) 
+        REFERENCES public.workspaces(id)
+);
+
+CREATE INDEX idx_assistants_created_at ON assistants (created_at);
+-----------------------------
+
+Table name: chats
+
+CREATE TABLE chats (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID,
+    user_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    title TEXT,
+    content TEXT,
+    status TEXT DEFAULT 'active'::text,
+    CONSTRAINT fk_workspace 
+        FOREIGN KEY (workspace_id) 
+        REFERENCES public.workspaces(id),
+    CONSTRAINT fk_user 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id)
+);
+
+CREATE INDEX idx_chats_created_at ON chats (created_at);
+CREATE INDEX idx_chats_updated_at ON chats (updated_at);
+CREATE INDEX idx_chats_title ON chats (title);
+CREATE INDEX idx_chats_content ON chats (content);
+CREATE INDEX idx_chats_status ON chats (status);
+------------------------
+
+Table name: collection_workspaces
+
+CREATE TABLE collection_workspaces (
+    collection_id UUID,
+    workspace_id UUID,
+    user_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    PRIMARY KEY (collection_id, workspace_id),
+    CONSTRAINT fk_collection 
+        FOREIGN KEY (collection_id) 
+        REFERENCES public.collections(id),
+    CONSTRAINT fk_workspace 
+        FOREIGN KEY (workspace_id) 
+        REFERENCES public.workspaces(id),
+    CONSTRAINT fk_user 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id)
+);
+
+CREATE INDEX idx_collection_workspaces_created_at ON collection_workspaces (created_at);
+CREATE INDEX idx_collection_workspaces_updated_at ON collection_workspaces (updated_at);
+--------------------------
+
+Table name: collections
+
+CREATE TABLE collections (
+    id UUID PRIMARY KEY,
+    name TEXT,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    sharing TEXT DEFAULT 'private'::text,
+    updated_at TIMESTAMP,
+    user_id UUID,
+    folder_id UUID,
+    CONSTRAINT collections_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id),
+    CONSTRAINT collections_folder_id_fkey 
+        FOREIGN KEY (folder_id) 
+        REFERENCES public.folders(id)
+);
+
+CREATE INDEX idx_collections_created_at ON collections (created_at);
+CREATE INDEX idx_collections_sharing ON collections (sharing);
+CREATE INDEX idx_collections_updated_at ON collections (updated_at);
+CREATE INDEX idx_collections_user_id ON collections (user_id);
+CREATE INDEX idx_collections_folder_id ON collections (folder_id);
+--------------------------
+
+Table name: file_workspaces
+
+CREATE TABLE file_workspaces (
+    file_id UUID,
+    workspace_id UUID,
+    user_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP,
+    PRIMARY KEY (file_id, workspace_id),
+    CONSTRAINT fk_file 
+        FOREIGN KEY (file_id) 
+        REFERENCES public.files(id),
+    CONSTRAINT fk_workspace 
+        FOREIGN KEY (workspace_id) 
+        REFERENCES public.workspaces(id),
+    CONSTRAINT fk_user 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id)
+);
+
+CREATE INDEX idx_file_workspaces_created_at ON file_workspaces (created_at);
+CREATE INDEX idx_file_workspaces_updated_at ON file_workspaces (updated_at);
+-----------------------------------
+
+Table name: files
+
+CREATE TABLE files (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT,
+    description TEXT,
+    file_path TEXT,
+    folder_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP,
+    user_id UUID,
+    sharing TEXT DEFAULT 'private'::text,
+    size BIGINT,
+    tokens INTEGER,
+    type TEXT,
+    CONSTRAINT files_folder_id_fkey 
+        FOREIGN KEY (folder_id) 
+        REFERENCES public.folders(id),
+    CONSTRAINT files_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id)
+);
+
+CREATE INDEX idx_files_description ON files (description);
+CREATE INDEX idx_files_folder_id ON files (folder_id);
+CREATE INDEX idx_files_created_at ON files (created_at);
+CREATE INDEX idx_files_updated_at ON files (updated_at);
+CREATE INDEX idx_files_user_id ON files (user_id);
+CREATE INDEX idx_files_sharing ON files (sharing);
+CREATE INDEX idx_files_size ON files (size);
+CREATE INDEX idx_files_tokens ON files (tokens);
+CREATE INDEX idx_files_type ON files (type);
+----------------------------------
+
+Table name: folders
+
+CREATE TABLE folders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT,
+    description TEXT,
+    type TEXT DEFAULT 'default'::text,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP,
+    user_id UUID,
+    workspace_id UUID,
+    CONSTRAINT folders_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id),
+    CONSTRAINT folders_workspace_id_fkey 
+        FOREIGN KEY (workspace_id) 
+        REFERENCES public.workspaces(id)
+);
+
+CREATE INDEX idx_folders_description ON folders (description);
+CREATE INDEX idx_folders_created_at ON folders (created_at);
+CREATE INDEX idx_folders_updated_at ON folders (updated_at);
+CREATE INDEX idx_folders_user_id ON folders (user_id);
+----------------------------------
+
+Table name: model_workspaces
+
+CREATE TABLE model_workspaces (
+    model_id UUID,
+    workspace_id UUID,
+    user_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    PRIMARY KEY (model_id, workspace_id),
+    CONSTRAINT model_workspaces_model_id_fkey 
+        FOREIGN KEY (model_id) 
+        REFERENCES public.models(id),
+    CONSTRAINT model_workspaces_workspace_id_fkey 
+        FOREIGN KEY (workspace_id) 
+        REFERENCES public.workspaces(id),
+    CONSTRAINT model_workspaces_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id)
+);
+
+-- Add index as indicated in the schema
+CREATE INDEX idx_model_workspaces_created_at ON model_workspaces (created_at);
+-------------------------------------
+
+Table name: models
+
+CREATE TABLE models (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    user_id UUID,
+    api_key TEXT,
+    base_url TEXT,
+    context_length INTEGER DEFAULT 4096,  -- Corrected typo from "context_lengt" to "context_length"
+    description TEXT,
+    folder_id UUID,
+    model_id TEXT,
+    sharing TEXT DEFAULT 'private'::text,
+    updated_at TIMESTAMP,
+    CONSTRAINT models_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id),
+    CONSTRAINT models_folder_id_fkey 
+        FOREIGN KEY (folder_id) 
+        REFERENCES public.folders(id)
+);
+
+CREATE INDEX idx_models_created_at ON models (created_at);
+CREATE INDEX idx_models_api_key ON models (api_key);
+CREATE INDEX idx_models_base_url ON models (base_url);
+CREATE INDEX idx_models_context_length ON models (context_length);
+CREATE INDEX idx_models_description ON models (description);
+CREATE INDEX idx_models_folder_id ON models (folder_id);
+CREATE INDEX idx_models_model_id ON models (model_id);
+CREATE INDEX idx_models_sharing ON models (sharing);
+CREATE INDEX idx_models_updated_at ON models (updated_at);
+-----------------------------------
+
+Table name: preset_workspaces
+
+CREATE TABLE preset_workspaces (
+    preset_id UUID,
+    workspace_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    PRIMARY KEY (preset_id, workspace_id),
+    CONSTRAINT preset_workspaces_preset_id_fkey 
+        FOREIGN KEY (preset_id) 
+        REFERENCES public.presets(id),
+    CONSTRAINT preset_workspaces_workspace_id_fkey 
+        FOREIGN KEY (workspace_id) 
+        REFERENCES public.workspaces(id)
+);
+
+CREATE INDEX idx_preset_workspaces_created_at ON preset_workspaces (created_at);
+------------------------------------
+
+Table name: presets
+
+CREATE TABLE presets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP,
+    user_id UUID,
+    CONSTRAINT presets_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id)
+);
+
+CREATE INDEX idx_presets_description ON presets (description);
+CREATE INDEX idx_presets_created_at ON presets (created_at);
+CREATE INDEX idx_presets_updated_at ON presets (updated_at);
+-------------------------------------
+
+Table name: profiles
+
+CREATE TABLE profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    username TEXT,
+    display_name TEXT,
+    has_onboarded BOOLEAN DEFAULT false,
+    use_azure_openai BOOLEAN DEFAULT false,
+    openai_api_key TEXT,
+    openai_organization TEXT,
+    anthropic_api_key TEXT,
+    google_gemini_api_key TEXT,
+    mistral_api_key TEXT,
+    llama_api_key TEXT,
+    perplexity_api_key TEXT,
+    openrouter_api_key TEXT,
+    azure_openai_key TEXT,
+    azure_openai_endpoint TEXT,
+    azure_openai_35_turbo_id TEXT,
+    azure_openai_45_turbo_id TEXT,
+    azure_openai_45_vision_id TEXT,
+    azure_openai_embeddings_id TEXT,
+    bio TEXT,
+    image_path TEXT,
+    image_url TEXT,
+    profile_context TEXT,
+    CONSTRAINT profiles_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id)
+);
+
+CREATE INDEX idx_profiles_created_at ON profiles (created_at);
+CREATE INDEX idx_profiles_display_name ON profiles (display_name);
+CREATE INDEX idx_profiles_openai_api_key ON profiles (openai_api_key);
+CREATE INDEX idx_profiles_openai_organization ON profiles (openai_organization);
+CREATE INDEX idx_profiles_anthropic_api_key ON profiles (anthropic_api_key);
+CREATE INDEX idx_profiles_google_gemini_api_key ON profiles (google_gemini_api_key); -- Corrected index name
+CREATE INDEX idx_profiles_mistral_api_key ON profiles (mistral_api_key);
+CREATE INDEX idx_profiles_llama_api_key ON profiles (llama_api_key);
+CREATE INDEX idx_profiles_perplexity_api_key ON profiles (perplexity_api_key);
+CREATE INDEX idx_profiles_openrouter_api_key ON profiles (openrouter_api_key);
+CREATE INDEX idx_profiles_azure_openai_key ON profiles (azure_openai_key);
+CREATE INDEX idx_profiles_azure_openai_endpoint ON profiles (azure_openai_endpoint); -- Added missing index
+CREATE INDEX idx_profiles_azure_openai_35_turbo_id ON profiles (azure_openai_35_turbo_id); -- Added missing index
+CREATE INDEX idx_profiles_azure_openai_45_turbo_id ON profiles (azure_openai_45_turbo_id); -- Added missing index
+CREATE INDEX idx_profiles_azure_openai_45_vision_id ON profiles (azure_openai_45_vision_id); -- Added missing index
+CREATE INDEX idx_profiles_azure_openai_embeddings_id ON profiles (azure_openai_embeddings_id); -- Added missing index
+CREATE INDEX idx_profiles_bio ON profiles (bio);
+CREATE INDEX idx_profiles_image_path ON profiles (image_path);
+CREATE INDEX idx_profiles_image_url ON profiles (image_url);
+CREATE INDEX idx_profiles_profile_context ON profiles (profile_context);
+-------------------------------------
+
+Table name: prompt_workspaces
+
+CREATE TABLE prompt_workspaces (
+    prompt_id UUID,
+    workspace_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    PRIMARY KEY (prompt_id, workspace_id),
+    CONSTRAINT prompt_workspaces_prompt_id_fkey 
+        FOREIGN KEY (prompt_id) 
+        REFERENCES public.prompts(id),
+    CONSTRAINT prompt_workspaces_workspace_id_fkey 
+        FOREIGN KEY (workspace_id) 
+        REFERENCES public.workspaces(id)
+);
+
+CREATE INDEX idx_prompt_workspaces_created_at ON prompt_workspaces (created_at);
+-------------------------------------
+
+Table name: prompts
+
+CREATE TABLE prompts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    content TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    user_id UUID,
+    name TEXT,
+    folder_id UUID,
+    sharing TEXT DEFAULT 'private'::text,
+    updated_at TIMESTAMP,
+    CONSTRAINT prompts_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id),
+    CONSTRAINT prompts_folder_id_fkey 
+        FOREIGN KEY (folder_id) 
+        REFERENCES public.folders(id)
+);
+
+CREATE INDEX idx_prompts_created_at ON prompts (created_at);
+CREATE INDEX idx_prompts_user_id ON prompts (user_id);
+CREATE INDEX idx_prompts_name ON prompts (name);
+CREATE INDEX idx_prompts_folder_id ON prompts (folder_id);
+CREATE INDEX idx_prompts_sharing ON prompts (sharing);
+CREATE INDEX idx_prompts_updated_at ON prompts (updated_at);
+------------------------------------
+
+Table name: tool_workspaces
+
+CREATE TABLE tool_workspaces (
+    toolId UUID,
+    workspaceId UUID,
+    PRIMARY KEY (toolId, workspaceId),
+    CONSTRAINT tool_workspaces_toolId_fkey 
+        FOREIGN KEY (toolId) 
+        REFERENCES public.tools(id),
+    CONSTRAINT tool_workspaces_workspaceId_fkey 
+        FOREIGN KEY (workspaceId) 
+        REFERENCES public.workspaces(id)
+);
+------------------------------------
+
+Table name: tools
+
+CREATE TABLE tools (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT,
+    created_at TIMESTAMP DEFAULT now(),
+    user_id UUID,
+    custom_headers JSONB DEFAULT '{}'::jsonb,
+    description TEXT,
+    folder_id UUID,
+    schema JSONB DEFAULT '{}'::jsonb,
+    sharing TEXT DEFAULT 'private'::text,
+    updated_at TIMESTAMP,
+    url TEXT,
+    CONSTRAINT tools_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id),
+    CONSTRAINT tools_folder_id_fkey 
+        FOREIGN KEY (folder_id) 
+        REFERENCES public.folders(id)
+);
+
+CREATE INDEX idx_tools_created_at ON tools (created_at);
+CREATE INDEX idx_tools_user_id ON tools (user_id);
+CREATE INDEX idx_tools_custom_headers ON tools (custom_headers);
+CREATE INDEX idx_tools_description ON tools (description);
+CREATE INDEX idx_tools_folder_id ON tools (folder_id);
+CREATE INDEX idx_tools_schema ON tools (schema);
+CREATE INDEX idx_tools_sharing ON tools (sharing);
+CREATE INDEX idx_tools_updated_at ON tools (updated_at);
+CREATE INDEX idx_tools_url ON tools (url);
+---------------------------------------
+
+Table name: workspaces
+
+CREATE TABLE workspaces (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID,
+    created_at TIMESTAMP DEFAULT now(),
+    name TEXT,
+    is_home BOOLEAN DEFAULT false,
+    default_context INT4 DEFAULT 128000,
+    CONSTRAINT workspaces_user_id_fkey 
+        FOREIGN KEY (user_id) 
+        REFERENCES auth.users(id)
+);
+
+CREATE INDEX idx_workspaces_created_at ON workspaces (created_at);
